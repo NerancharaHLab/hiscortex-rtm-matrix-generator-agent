@@ -1,0 +1,9 @@
+.env
+.DS_Store
+__pycache__/
+*.xlsx
+*.xlsx.tmp
+workbooks-tc/workbooks-file/
+workbooks-tc/Asklinear/
+*.md.tmp
+tmh_2043_description.md
