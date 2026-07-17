@@ -16,19 +16,35 @@ Since you operate on the cloud and cannot modify local Excel files directly, **y
    - Read the issue description and Acceptance Criteria (AC).
    - **Crucial:** Scan the **Comments/Discussion History** on the ticket. If there is a conflict between the original AC and changes discussed by the Developers, **prioritize the Developer's modifications** (as they represent the actual code implementation to be tested).
 
-2. **Categorize by Test Intent:**
-   - Focus heavily on **Happy Path** (normal flows) for initial UAT validation.
-   - Design at least 2-3 **Unhappy Paths** or **Edge Cases** (such as cancelled transactions, empty states, or boundary limits).
-   - Design at least 1 **Error Case** (network timeouts or database query failures) if applicable.
-   - Design a **Security/RBAC** test case if the ticket restricts feature access to specific user roles.
+2. **Analyze Test Case Coverage (ขยายขอบเขตการคิดเทสเคสแบบละเอียด):**
+   เพื่อให้เทสเคสมีความสมบูรณ์แบบสูงสุดและไม่มีบั๊กหลุดรอด ให้ขยายการออกแบบเทสเคสให้ครอบคลุมมิติเหล่านี้เสมอ:
+   - **UI/UX & Responsiveness (UI/UX Case):**
+     - ตรวจสอบ Layout, alignment, ฟอนต์ และการจัดพื้นที่แสดงผล เช่น การใช้พื้นที่แบบ flex/grid ตามพื้นที่ของ Tab (ไม่ล็อก viewport)
+     - ตรวจสอบการแสดงผลและข้อมูลใน Tooltip, Popover, Badge, Icon และ Empty State (กรณีไม่มีข้อมูล)
+   - **Data Input Validation & Edge Cases (Edge Case):**
+     - ตรวจสอบการป้อนข้อมูลค่าสุดขั้ว (Boundary values), ค่าติดลบ, เกินจำกัด (เช่น วงเงิน 30k), ค่าว่างเปล่า (Null/Blank), และความยาวอักขระ
+     - ตรวจสอบระบบแจ้งเตือน (Validation Alert) และข้อความเตือน (Error message) เมื่อป้อนข้อมูลไม่ถูกต้อง
+   - **Alternative Flows & Fallback Options (Unhappy Case):**
+     - ตรวจสอบกรณีที่ไม่มีข้อมูลหลัก เช่น ไม่มี Bed Reservation หรือ PreferBedId แล้วตรวจสอบว่าระบบมีการทำงานแบบ Fallback หรือใช้ข้อมูลตัวเลือกรองแทนได้สำเร็จโดยไม่พัง
+     - ตรวจสอบโฟลว์ยกเลิกการทำธุรกรรม (Cancel Transaction) และการคืนสถานะกลับสู่ค่าเริ่มต้น
+   - **Role-Based Access Control (Security Case):**
+     - ตรวจสอบสิทธิ์ของแต่ละบทบาท (เช่น แพทย์ พยาบาล การเงิน คลังยา) ในการเข้าถึงหน้าจอ, ปุ่มสั่งการ, และการล็อกความสามารถการแก้ไขตามสิทธิ์
+   - **Integration / End-to-End Flow (Happy/Unhappy Case):**
+     - ตรวจสอบความเชื่อมโยงของข้อมูลและการไหลข้ามโมดูล (เช่น สั่งยาในโมดูล CPOE แล้วข้อมูลต้องปรากฏใน Cashier และ Pharmacy อย่างถูกต้อง และหากมีการยกเลิกใบยา รายการยาที่โมดูลอื่นต้องถูกปรับสถานะหรือลบออกอัตโนมัติ)
+   - **Failure & Recovery Handling (Error Case):**
+     - จำลองสถานการณ์เมื่อ API ดึงข้อมูลล้มเหลว (500 Internal Server Error), API Timeout หรือฐานข้อมูลเชื่อมต่อขัดข้อง เพื่อตรวจสอบว่าระบบมีข้อความแจ้งเตือนที่เหมาะสมและไม่เกิดข้อมูลเพี้ยนหรือหน้าจอค้าง
+   
+3. **Granularity Rule (การแยกเคสย่อย):**
+   - **ห้ามมัดรวมหลายการตรวจสอบไว้ในเคสเดียวกัน** เช่น "ตรวจสอบการกรอกและการบันทึกและปุ่มลบ"
+   - **ให้แยกการทดสอบเป็นรายข้อ (รายฟิลด์/รายฟังก์ชันย่อย)** เพื่อช่วยทีม QA และผู้พัฒนาในการติดตามบั๊กและระบุตำแหน่งของข้อผิดพลาดได้อย่างเจาะจง
 
-3. **Format the Test Case Name (Thai Language Site):**
+4. **Format the Test Case Name (Thai Language Site):**
    - All test case names **MUST** be written in **Thai** following this exact pattern:
      `[ตรวจสอบ/ทดสอบ] + [สิ่งที่ตรวจสอบ (Verb + Object)] + [เงื่อนไข/กรณีที่ทดสอบ]`
-   - *Example:* `ตรวจสอบการคำนวณส่วนลดถูกต้อง กรณีอัตราลดหย่อน 30%`
+   - *Example:* `ตรวจสอบการแสดงเหตุผลการยกเลิกใบเสร็จถูกต้อง กรณีรายการในรอบมีใบเสร็จสถานะยกเลิก`
    - *Never write broad names* like `ทดสอบรายงาน` or `ตรวจสอบการทำงานของระบบ`.
 
-4. **Verify Metadata Values:**
+5. **Verify Metadata Values:**
    - Use only valid settings backed by lookup lists. Match spelling and casing exactly:
      - **Priority:** Critical, High, Medium, Low
      - **Module:** Pharmacy, Billing, EMR, Lab, Patient, Register, Triage, CPOE, Insurance, Appointment, Cashier, Claim, Report, Security, Audit, Admission, Document
